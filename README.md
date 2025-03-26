@@ -32,7 +32,7 @@ This project analyzes music trends using the Spotify API by retrieving the top 5
 4. **Visualization**  [Travis]
    - Generate time-series plots of popularity trends.  
    - Display audio feature comparisons in charts.  
-   - **Bar Charts**
+  - **Bar Charts**
     - Number of artists per genre per year
     - New vs returning artists over time
 
