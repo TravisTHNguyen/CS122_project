@@ -9,15 +9,15 @@ This project analyzes music trends using the Spotify API by retrieving the top 5
 
 
 ## Project Outline
-1. **Data Collection**  
+1. **Data Collection**  [Samuel]
    - Using the spotif API top 50 artists from different timeframes (short-term, medium-term, long-term).  
    - Extract audio features of top tracks.  
 
-2. **Data Organization**  
+2. **Data Organization**  [Samuel]
    - Store data in structured JSON or CSV format.
    - CSV of top 50 artists from 2020-2025 extracting from the global 50 playlist
 
-3. **Data Analysis**    
+3. **Data Analysis**    [Travis]
   - **Genre Popularity Trends**
     - Track genre representation in the top 50 over the years.
     - Identify emerging or declining genres.
@@ -29,7 +29,7 @@ This project analyzes music trends using the Spotify API by retrieving the top 5
   - **Popularity Metrics**
     - Study changes in popularity scoes and follower counts year-over-year
 
-4. **Visualization**  
+4. **Visualization**  [Travis]
    - Generate time-series plots of popularity trends.  
    - Display audio feature comparisons in charts.  
    - **Bar Charts**
