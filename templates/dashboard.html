@@ -1,14 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Spotify Visualizer</title>
+    <title>Spotify Dashboard - {{ year }}</title>
+    <style>
+        .tabs button {
+            padding: 10px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
+        .chart {
+            display: none;
+        }
+
+        .chart.active {
+            display: block;
+        }
+    </style>
+    <script>
+        function showChart(chartId) {
+            const charts = document.querySelectorAll(".chart");
+            charts.forEach(c => c.classList.remove("active"));
+            document.getElementById(chartId).classList.add("active");
+        }
+
+        window.onload = function () {
+            showChart("barChart"); // default tab
+        };
+    </script>
 </head>
 <body>
-    <h1>🎵 Welcome to the Spotify Data Visualizer 🎵</h1>
-    <ul>
-        <li><a href="/line">Line Chart</a></li>
-        <li><a href="/bar">Bar Chart</a></li>
-        <li><a href="/pie">Pie Chart</a></li>
-    </ul>
+    <h1>📊 Spotify Dashboard for {{ year }}</h1>
+
+    <div class="tabs">
+        <button onclick="showChart('barChart')">Top Artists</button>
+        <button onclick="showChart('pieChart')">Top Genres</button>
+        <button onclick="showChart('histogramChart')">Track Duration Histogram</button>
+    </div>
+
+    <div id="barChart" class="chart">
+        <h2>Top 10 Artists by Popularity</h2>
+        <img src="{{ bar }}" alt="Bar Chart">
+    </div>
+
+    <div id="pieChart" class="chart">
+        <h2>Top 5 Genres</h2>
+        <img src="{{ pie }}" alt="Pie Chart">
+    </div>
+
+    <div id="histogramChart" class="chart">
+        <h2>Distribution of Track Durations</h2>
+        <img src="{{ histogram }}" alt="Histogram">
+    </div>
 </body>
 </html>

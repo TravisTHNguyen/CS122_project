@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Spotify Dashboard Home</title></head>
+<body>
+    <h1>🎵 Spotify Playlist Visualizer</h1>
+
+    <form method="post" action="/generate">
+        <button type="submit">🔄 Generate All Playlist Data (2020–2024)</button>
+    </form>
+
+    <hr>
+
+    <form method="get" action="/dashboard">
+        <label for="year">Select a year:</label>
+        <select name="year" id="year">
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+        </select>
+        <button type="submit">📊 View Dashboard</button>
+    </form>
+</body>
+</html>

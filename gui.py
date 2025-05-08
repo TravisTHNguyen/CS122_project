@@ -1,127 +1,96 @@
-from flask import Flask, render_template
-import random
+from flask import Flask, render_template, request, redirect, url_for
+import subprocess
 import matplotlib.pyplot as plt
+import pandas as pd
+import io, base64
 import os
-import csv
+import sys
 
-#just some very basic framework stuff to get us started on 
 app = Flask(__name__)
 
-def generate_line_chart():
-    import io, base64
-    years = list(range(2020, 2026))
-    values = [random.randint(50, 100) for _ in years]
-
-    fig, ax = plt.subplots()
-    ax.plot(years, values, marker='o', color='blue')
-    ax.set_title("Artist Popularity Over Time")
-    ax.set_xlabel("Year")
-    ax.set_ylabel("Popularity Score")
-
-    return fig_to_uri(fig)
-
-def generate_bar_chart():
-    import io, base64
-    genres = ['Pop', 'Hip-Hop', 'Rock', 'EDM', 'Latin']
-    counts = [random.randint(10, 50) for _ in genres]
-
-    fig, ax = plt.subplots()
-    ax.bar(genres, counts, color='green')
-    ax.set_title("Number of Artists per Genre")
-    ax.set_ylabel("Count")
-
-    return fig_to_uri(fig)
-
-def generate_pie_chart():
-    import io, base64
-    genres = ['Pop', 'Hip-Hop', 'Rock', 'EDM', 'Latin']
-    sizes = [random.randint(10, 30) for _ in genres]
-
-    fig, ax = plt.subplots()
-    ax.pie(sizes, labels=genres, autopct='%1.1f%%', startangle=140)
-    ax.set_title("Genre Distribution")
-
-    return fig_to_uri(fig)
-
+# ---------- Utilities ----------
 def fig_to_uri(fig):
-    import io, base64
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
     string = base64.b64encode(buf.read())
-    uri = 'data:image/png;base64,' + string.decode('utf-8')
-    return uri
+    return 'data:image/png;base64,' + string.decode('utf-8')
 
+def load_csv(year):
+    filepath = f"{year}_playlist_data.csv"
+    if os.path.exists(filepath):
+        return pd.read_csv(filepath)
+    return None
 
-#some csv parse functions will go here, will wait till final files are given
-import csv
+# ---------- Charts ----------
+def generate_bar_chart(data):
+    top_artists = (data[['Artist', 'Artist Popularity']]
+                   .dropna()
+                   .groupby('Artist')
+                   .max()
+                   .sort_values(by='Artist Popularity', ascending=False)
+                   .head(10))
 
-def read_csv_as_dicts(filepath):
-    """Returns list of dictionaries from a CSV file."""
-    with open(filepath, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        return [row for row in reader]
+    fig, ax = plt.subplots()
+    bars = ax.bar(top_artists.index, top_artists['Artist Popularity'], color='orange', width=0.6)
+    ax.set_title("Top 10 Artists by Popularity")
+    ax.set_ylabel("Popularity")
+    ax.set_ylim(0, max(top_artists['Artist Popularity']) + 5)
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    return fig_to_uri(fig)
 
-from collections import defaultdict
+def generate_histogram(data):
+    durations_ms = data["Duration (ms)"].dropna()
+    durations_sec = durations_ms / 1000  # convert to seconds
 
-def parse_artists_per_genre_per_year(rows):
-    """Returns a nested dict of genre -> year -> count of artists."""
-    data = defaultdict(lambda: defaultdict(int))
-    for row in rows:
-        year = row.get("year")
-        genre = row.get("genre")
-        if year and genre:
-            data[genre][year] += 1
-    return data
+    fig, ax = plt.subplots()
+    ax.hist(durations_sec, bins=20, color='skyblue', edgecolor='black')
+    ax.set_title("Distribution of Track Durations (seconds)")
+    ax.set_xlabel("Duration (s)")
+    ax.set_ylabel("Number of Tracks")
+    plt.tight_layout()
+    return fig_to_uri(fig)
 
-def track_new_vs_returning_artists(rows):
-    """Returns a dict of year -> {'new': set(), 'returning': set()}"""
-    seen = set()
-    yearly_stats = defaultdict(lambda: {'new': set(), 'returning': set()})
-    for row in rows:
-        year = row.get("year")
-        artist = row.get("artist_name")
-        if not year or not artist:
-            continue
-        if artist in seen:
-            yearly_stats[year]['returning'].add(artist)
-        else:
-            yearly_stats[year]['new'].add(artist)
-            seen.add(artist)
-    return yearly_stats
+def generate_pie_chart(data):
+    exploded = data['Genres'].dropna().str.split(', ')
+    genres = exploded.explode()
+    genre_counts = genres[genres.str.lower() != 'unknown'].value_counts().head(5)
 
-def genre_distribution_for_year(rows, target_year):
-    """Returns genre count dict for a specific year."""
-    genre_counts = defaultdict(int)
-    for row in rows:
-        if row.get("year") == str(target_year):
-            genre = row.get("genre")
-            if genre:
-                genre_counts[genre] += 1
-    return genre_counts
+    fig, ax = plt.subplots()
+    genre_counts.plot(kind='pie', ax=ax, autopct='%1.1f%%', startangle=140)
+    ax.set_ylabel("")
+    ax.set_title("Top 5 Genres")
+    plt.tight_layout()
+    return fig_to_uri(fig)
 
+# ---------- Routes ----------
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("home.html")
 
-@app.route("/")
-def dashboard():
-    line = generate_line_chart()
-    bar = generate_bar_chart()
-    return render_template("dashboard.html", line=line, bar=bar)
+@app.route("/generate", methods=["POST"])
+def generate():
+    subprocess.run([sys.executable, "data/data.py"])
+    return redirect(url_for("home"))
 
+@app.route("/dashboard")
+def dashboard_redirect():
+    year = request.args.get("year")
+    return redirect(url_for("dashboard", year=year))
 
-@app.route("/line")
-def line():
-    chart = generate_line_chart()
-    return render_template("line.html", chart=chart)
+@app.route("/dashboard/<year>")
+def dashboard(year):
+    data = load_csv(year)
+    if data is None:
+        return f"CSV file for {year} not found. Please generate data first.", 404
 
-@app.route("/bar")
-def bar():
-    chart = generate_bar_chart()
-    return render_template("bar.html", chart=chart)
+    return render_template("dashboard.html",
+                           year=year,
+                           histogram=generate_histogram(data),
+                           bar=generate_bar_chart(data),
+                           pie=generate_pie_chart(data))
 
-@app.route("/pie")
-def pie():
-    chart = generate_pie_chart()
-    return render_template("pie.html", chart=chart)
-
+# ---------- Main ----------
 if __name__ == "__main__":
     app.run(debug=True)
