@@ -2,11 +2,16 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import pandas as pd
 import os
+from pathlib import Path
 
 CLIENT_ID = "d3b16b119e9547d6965785618bcf4543"
 CLIENT_SECRET = "30e320c3376a4383ba5a25af9bc8cb2a"
 REDIRECT_URI = "http://localhost:8080"
 SCOPE = "playlist-read-private"
+
+# Create data directory if it doesn't exist
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
 
 playlist_map = {
     "2020": "7MyK3ZYElsc0Bkxlvbs8v0",
@@ -74,7 +79,7 @@ for year, pid in playlist_map.items():
                 "Genres": ", ".join(genres) if genres else "unknown"
             })
 
-        output_path = f"{year}_playlist_data.csv"
+        output_path = DATA_DIR / f"{year}_playlist_data.csv"
         pd.DataFrame(all_data).to_csv(output_path, index=False)
         print(f"✅ Saved: {output_path}")
 

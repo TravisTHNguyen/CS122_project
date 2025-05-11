@@ -5,8 +5,13 @@ import pandas as pd
 import io, base64
 import os
 import sys
+from pathlib import Path
 
 app = Flask(__name__)
+
+# Define data directory
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
 
 # ---------- Utilities ----------
 def fig_to_uri(fig):
@@ -20,15 +25,15 @@ def load_csv(year):
     if year == "all":
         dfs = []
         for y in ["2020", "2021", "2022", "2023", "2024"]:
-            path = f"{y}_playlist_data.csv"
-            if os.path.exists(path):
+            path = DATA_DIR / f"{y}_playlist_data.csv"
+            if path.exists():
                 dfs.append(pd.read_csv(path))
         if dfs:
             return pd.concat(dfs, ignore_index=True)
         return None
     else:
-        filepath = f"{year}_playlist_data.csv"
-        if os.path.exists(filepath):
+        filepath = DATA_DIR / f"{year}_playlist_data.csv"
+        if filepath.exists():
             return pd.read_csv(filepath)
         return None
 
@@ -101,7 +106,6 @@ def generate_top_tracks_chart(data):
     plt.tight_layout()
     return fig_to_uri(fig)
 
-
 def generate_followed_artists_chart(data):
     top_followed = (data[['Artist', 'Artist Followers']]
                     .dropna()
@@ -117,7 +121,6 @@ def generate_followed_artists_chart(data):
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
     return fig_to_uri(fig)
-
 
 # ---------- Routes ----------
 @app.route("/", methods=["GET"])
@@ -149,7 +152,5 @@ def dashboard(year):
                            top_tracks=generate_top_tracks_chart(data),
                            followed=generate_followed_artists_chart(data))
 
-
-# ---------- Main ----------
 if __name__ == "__main__":
     app.run(debug=True)
