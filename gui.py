@@ -17,10 +17,20 @@ def fig_to_uri(fig):
     return 'data:image/png;base64,' + string.decode('utf-8')
 
 def load_csv(year):
-    filepath = f"{year}_playlist_data.csv"
-    if os.path.exists(filepath):
-        return pd.read_csv(filepath)
-    return None
+    if year == "all":
+        dfs = []
+        for y in ["2020", "2021", "2022", "2023", "2024"]:
+            path = f"{y}_playlist_data.csv"
+            if os.path.exists(path):
+                dfs.append(pd.read_csv(path))
+        if dfs:
+            return pd.concat(dfs, ignore_index=True)
+        return None
+    else:
+        filepath = f"{year}_playlist_data.csv"
+        if os.path.exists(filepath):
+            return pd.read_csv(filepath)
+        return None
 
 # ---------- Charts ----------
 def generate_bar_chart(data):
@@ -42,8 +52,7 @@ def generate_bar_chart(data):
 
 def generate_histogram(data):
     durations_ms = data["Duration (ms)"].dropna()
-    durations_sec = durations_ms / 1000  # convert to seconds
-
+    durations_sec = durations_ms / 1000
     fig, ax = plt.subplots()
     ax.hist(durations_sec, bins=20, color='skyblue', edgecolor='black')
     ax.set_title("Distribution of Track Durations (seconds)")
@@ -63,6 +72,52 @@ def generate_pie_chart(data):
     ax.set_title("Top 5 Genres")
     plt.tight_layout()
     return fig_to_uri(fig)
+
+def generate_explicit_chart(data):
+    counts = data['Explicit'].value_counts()
+    labels = ['Non-Explicit', 'Explicit']
+    fig, ax = plt.subplots()
+    counts.plot(kind='pie', ax=ax, labels=labels, autopct='%1.1f%%', startangle=90)
+    ax.set_ylabel("")
+    ax.set_title("Explicit vs Non-Explicit Tracks")
+    plt.tight_layout()
+    return fig_to_uri(fig)
+
+def generate_top_tracks_chart(data):
+    top_tracks = (data[['Song', 'Artist', 'Popularity']]
+                  .dropna()
+                  .assign(Label=lambda df: df['Song'] + " – " + df['Artist'])
+                  .groupby('Label')
+                  .max()
+                  .sort_values(by='Popularity', ascending=False)
+                  .head(10))
+
+    fig, ax = plt.subplots()
+    top_tracks.plot(kind='bar', y='Popularity', ax=ax, color='mediumseagreen', legend=False)
+    ax.set_title("Top 10 Tracks by Popularity")
+    ax.set_ylabel("Popularity")
+    ax.set_xlabel("Track")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    return fig_to_uri(fig)
+
+
+def generate_followed_artists_chart(data):
+    top_followed = (data[['Artist', 'Artist Followers']]
+                    .dropna()
+                    .groupby('Artist')
+                    .max()
+                    .sort_values(by='Artist Followers', ascending=False)
+                    .head(10))
+    fig, ax = plt.subplots()
+    top_followed.plot(kind='bar', y='Artist Followers', ax=ax, color='slateblue', legend=False)
+    ax.set_title("Top 10 Most Followed Artists")
+    ax.set_ylabel("Followers")
+    ax.set_xlabel("Artist")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    return fig_to_uri(fig)
+
 
 # ---------- Routes ----------
 @app.route("/", methods=["GET"])
@@ -89,7 +144,11 @@ def dashboard(year):
                            year=year,
                            histogram=generate_histogram(data),
                            bar=generate_bar_chart(data),
-                           pie=generate_pie_chart(data))
+                           pie=generate_pie_chart(data),
+                           explicit=generate_explicit_chart(data),
+                           top_tracks=generate_top_tracks_chart(data),
+                           followed=generate_followed_artists_chart(data))
+
 
 # ---------- Main ----------
 if __name__ == "__main__":
