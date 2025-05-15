@@ -49,7 +49,7 @@ One thing to note is that a spotify dev account is required to call the api, but
      - Show multiple playlist's data to show overall trends and information.
     
 
-##Reference images
+## Reference images
    
 ![image](https://github.com/user-attachments/assets/8ddee779-e740-4485-aed6-8f00e8b940da)
 
