@@ -1,4 +1,6 @@
-![image](https://github.com/user-attachments/assets/be8290ce-f75b-4a89-bfaa-e32301e53e80)# Spotify Music Trends Analysis
+![image](https://github.com/user-attachments/assets/be8290ce-f75b-4a89-bfaa-e32301e53e80)
+
+# Spotify Music Trends Analysis
 
 ## Authors
 - [Samuel Hendric]  
@@ -45,8 +47,13 @@ One thing to note is that a spotify dev account is required to call the api, but
       - Genre distribution for a given year
    - **Multiple Playlist Support**
      - Show multiple playlist's data to show overall trends and information.
+    
+
+##Reference images
    
 ![image](https://github.com/user-attachments/assets/8ddee779-e740-4485-aed6-8f00e8b940da)
 
 ![image](https://github.com/user-attachments/assets/956d23f8-9955-4cdf-b02d-a28afb1d1cf9)
+
+![image](https://github.com/user-attachments/assets/ea32c73e-5e4a-4558-beb4-7a0e56e4ba5c)
 
