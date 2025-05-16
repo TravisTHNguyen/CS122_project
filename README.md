@@ -14,12 +14,13 @@ One thing to note is that a spotify dev account is required to call the api, but
 
 ## Project Outline
 1. **Data Collection**  [Samuel]
-   - Using the spotif API top 50 artists from different timeframes (short-term, medium-term, long-term).  
-   - Extract audio features of top tracks.  
+   - Using the spotif API collect data from different playlists from 2020-2024
+   - Extract from the playlist year, song, artist, popularity, explicit, duration, album, release date, artist popularity, #of artist followers, and genres
 
 2. **Data Organization**  [Samuel]
-   - Store data in structured JSON or CSV format.
-   - CSV of top 50 artists from 2020-2025 extracting from the global 50 playlist
+   - Store data in structured CSV format.
+   - CSV of top songs from 2020-2024
+   - gui will later call api to generate csv of playlist, for use in data analysis 
 
 3. **Data Analysis**    [Travis]
   - **Genre Popularity Trends**
